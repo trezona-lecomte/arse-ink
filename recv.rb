@@ -1,15 +1,27 @@
 #!/usr/bin/env ruby
-# require 'pry'
+require 'stringio'
+require 'byebug'
 
-@in = STDIN.read
-puts "++file recd on server: \n#{@in}"
+class Server
+  def initialize(input:, output: ARGF.filename)
+    @in = input
+    @out = output
+    # byebug
+  end
 
-if File.exists?(ARGF.filename)
-  File.open(ARGF.filename, 'a+') { |f| f.write(@in) }
+  def save_file
+    if File.exists?(@out)
+      File.open(@out, 'a+') { |f| f.write(@in) }
 
-  puts "++existing file written from server."
-else
-  File.open(ARGF.filename, 'a+') { |f| f.write(@in) }
+      puts "++existing file written from server."
+    else
+      File.open(@out, 'a+') { |f| f.write(@in) }
 
-  puts "++new file created and written from server."
+      puts "++new file created and written from server."
+    end
+  end
 end
+
+server = Server.new(input: "testing!!!", output: "local-file.txt")
+
+server.save_file
