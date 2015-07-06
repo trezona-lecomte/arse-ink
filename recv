@@ -16,13 +16,8 @@ class Recv
   end
 
   def receive
-    recd_bytes = 0
-
     until STDIN.eof?
-      line = STDIN.readline
-      recd_bytes += line.bytes.size
-      new_sum = line.to_i
-      # new_sum = STDIN.readline.to_i
+      new_sum = STDIN.readline.to_i
 
       begin
         old_line = @old_output.readline
@@ -37,19 +32,16 @@ class Recv
 
         @new_output.write(old_line)
 
-        # STDERR.puts "Wrote OLD line: #{old_line}"
+        STDERR.puts "Wrote OLD line: #{old_line}"
       else
         STDOUT.write("y")
 
         new_line = STDIN.readline
         @new_output.write(new_line)
-        recd_bytes += new_line.bytes.size
 
-        # STDERR.puts "Wrote NEW line: #{new_line}"
+        STDERR.puts "Wrote NEW line: #{new_line}"
       end
     end
-
-    STDERR.puts recd_bytes
 
     @old_output.close
     @new_output.close
