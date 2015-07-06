@@ -4,8 +4,9 @@ require 'zlib'
 require 'digest'
 
 class Send
-DIGEST_SIZE = 32
-CHUNK_SIZE = 1024
+  DIGEST_SIZE = 32
+  LENGTH_SIZE = 4
+  CHUNK_SIZE = 1024
 
   def initialize
     @in_file = ARGF.file
@@ -15,9 +16,15 @@ CHUNK_SIZE = 1024
     chunks(@in_file).each do |chunk|
       # puts line.sum
       STDOUT.write(Digest::MD5.hexdigest(chunk))
+      compressed_chunk = Zlib::Deflate.deflate(chunk)
+
+      STDOUT.write(chunk.length.to_s.split.pack("A#{LENGTH_SIZE}"))
+      STDOUT.write(compressed_chunk.length.to_s.split.pack("A#{LENGTH_SIZE}"))
+
+
 
       if STDIN.read(1) == "y"
-        STDOUT.write(chunk)
+        STDOUT.write(compressed_chunk)
       end
     end
   end

@@ -6,6 +6,7 @@ require 'digest'
 
 class Recv
   DIGEST_SIZE = 32
+  LENGTH_SIZE = 4
   CHUNK_SIZE = 1024
 
   def initialize
@@ -23,10 +24,13 @@ class Recv
 
     until STDIN.eof?
       new_digest = STDIN.read(DIGEST_SIZE)
-      recd_bytes += new_digest.bytes.size
+      uncompressed_new_chunk_length = STDIN.read(LENGTH_SIZE).to_i
+      compressed_new_chunk_length = STDIN.read(LENGTH_SIZE).to_i
+
+      recd_bytes += DIGEST_SIZE + (LENGTH_SIZE * 2)
       # STDERR.puts "\nnew new_digest, length: #{new_digest.bytes.size}, digest: #{new_digest}"
 
-      unless (old_chunk = @old_output.read(CHUNK_SIZE))
+      unless (old_chunk = @old_output.read(uncompressed_new_chunk_length))
         old_chunk = ""
       end
 
@@ -42,15 +46,18 @@ class Recv
       else
         STDOUT.write("y")
 
-        new_chunk = STDIN.read(CHUNK_SIZE)
-        @new_output.write(new_chunk)
-        recd_bytes += new_chunk.bytes.size
+        compressed_new_chunk = STDIN.read(compressed_new_chunk_length)
+        recd_bytes += compressed_new_chunk_length
+
+        uncompressed_new_chunk = Zlib::Inflate.inflate(compressed_new_chunk)
+        @new_output.write(uncompressed_new_chunk)
 
         # STDERR.puts "Wrote NEW chunk: #{new_chunk.size}"
       end
     end
 
-    STDERR.puts recd_bytes
+    STDERR.puts "Recd #{recd_bytes} Bytes"
+    STDERR.puts "Recd #{recd_bytes / 1000000.00} MB"
 
     @old_output.close
     @new_output.close
