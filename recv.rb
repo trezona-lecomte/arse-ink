@@ -28,7 +28,6 @@ class Recv
       compressed_new_chunk_length = STDIN.read(LENGTH_SIZE).to_i
 
       recd_bytes += DIGEST_SIZE + (LENGTH_SIZE * 2)
-      # STDERR.puts "\nnew new_digest, length: #{new_digest.bytes.size}, digest: #{new_digest}"
 
       unless (old_chunk = @old_output.read(uncompressed_new_chunk_length))
         old_chunk = ""
@@ -36,9 +35,7 @@ class Recv
 
 
       old_digest = Digest::MD5.hexdigest(old_chunk).to_s
-      # STDERR.puts "old digest, length: #{old_digest.bytes.size}, Digest: #{old_digest}\n"
 
-      # STDERR.puts "Old digest: #{old_digest}\nNew digest: #{new_digest}"
       if new_digest == old_digest
         STDOUT.write("n")
 
