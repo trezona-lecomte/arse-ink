@@ -10,6 +10,7 @@ class Recv
   CHUNK_SIZE = 512
 
   def initialize
+    # @recd_bytes = 0
     begin
       @old_output = StringIO.new(ARGF.read)
       @new_output = File.open(ARGF.filename, "w+")
@@ -20,46 +21,49 @@ class Recv
   end
 
   def receive
-    recd_bytes = 0
 
     until STDIN.eof?
-      new_digest = STDIN.read(DIGEST_SIZE).unpack('H32').first
-      uncompressed_new_chunk_length = STDIN.read(LENGTH_SIZE).to_i
-      compressed_new_chunk_length = STDIN.read(LENGTH_SIZE).to_i
+      read_header
 
-      recd_bytes += DIGEST_SIZE + (LENGTH_SIZE * 2)
+      @old_chunk = read_old_chunk
 
-      unless (old_chunk = @old_output.read(uncompressed_new_chunk_length))
-        old_chunk = ""
-      end
-
-
-      old_digest = Digest::MD5.hexdigest(old_chunk).to_s
-
-      if new_digest == old_digest
+      if @new_digest == Digest::MD5.hexdigest(@old_chunk).to_s
         STDOUT.write("n")
 
-        @new_output.write(old_chunk)
-
-        # STDERR.puts "Wrote OLD chunk: #{old_chunk.size}"
+        @new_output.write(@old_chunk)
       else
         STDOUT.write("y")
 
-        compressed_new_chunk = STDIN.read(compressed_new_chunk_length)
-        recd_bytes += compressed_new_chunk_length
-
-        uncompressed_new_chunk = Zlib::Inflate.inflate(compressed_new_chunk)
-        @new_output.write(uncompressed_new_chunk)
-
-        # STDERR.puts "Wrote NEW chunk: #{new_chunk.size}"
+        @new_output.write(read_new_chunk)
       end
     end
-
-    STDERR.puts "Recd #{recd_bytes} Bytes"
-    STDERR.puts "Recd #{recd_bytes / 1000000.00} MB"
-
+    # STDERR.puts "Recd #{@recd_bytes} Bytes"
+    # STDERR.puts "Recd #{@recd_bytes / 1000000.00} MB"
     @old_output.close
     @new_output.close
+  end
+
+  private
+
+  def read_header
+    @new_digest = STDIN.read(DIGEST_SIZE).unpack('H32').first
+    @uncompressed_new_chunk_length = STDIN.read(LENGTH_SIZE).to_i
+    @compressed_new_chunk_length = STDIN.read(LENGTH_SIZE).to_i
+    # @recd_bytes += DIGEST_SIZE + (LENGTH_SIZE * 2)
+  end
+
+  def read_old_chunk
+    unless (old_chunk = @old_output.read(@uncompressed_new_chunk_length))
+      old_chunk = ""
+    end
+
+    @old_chunk = old_chunk
+  end
+
+  def read_new_chunk
+    compressed_new_chunk = STDIN.read(@compressed_new_chunk_length)
+    # @recd_bytes += @compressed_new_chunk_length
+    Zlib::Inflate.inflate(compressed_new_chunk)
   end
 end
 

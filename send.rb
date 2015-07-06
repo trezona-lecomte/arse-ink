@@ -14,14 +14,12 @@ class Send
 
   def transfer
     chunks(@in_file).each do |chunk|
-      # puts line.sum
       STDOUT.write([Digest::MD5.hexdigest(chunk)].pack('H32'))
+
       compressed_chunk = Zlib::Deflate.deflate(chunk)
 
       STDOUT.write(chunk.length.to_s.split.pack("A#{LENGTH_SIZE}"))
       STDOUT.write(compressed_chunk.length.to_s.split.pack("A#{LENGTH_SIZE}"))
-
-
 
       if STDIN.read(1) == "y"
         STDOUT.write(compressed_chunk)
