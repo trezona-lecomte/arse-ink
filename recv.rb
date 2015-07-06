@@ -5,9 +5,9 @@ require 'zlib'
 require 'digest'
 
 class Recv
-  DIGEST_SIZE = 32
+  DIGEST_SIZE = 16
   LENGTH_SIZE = 4
-  CHUNK_SIZE = 1024
+  CHUNK_SIZE = 512
 
   def initialize
     begin
@@ -23,7 +23,7 @@ class Recv
     recd_bytes = 0
 
     until STDIN.eof?
-      new_digest = STDIN.read(DIGEST_SIZE)
+      new_digest = STDIN.read(DIGEST_SIZE).unpack('H32').first
       uncompressed_new_chunk_length = STDIN.read(LENGTH_SIZE).to_i
       compressed_new_chunk_length = STDIN.read(LENGTH_SIZE).to_i
 
@@ -34,9 +34,11 @@ class Recv
         old_chunk = ""
       end
 
-      old_digest = Digest::MD5.hexdigest(old_chunk)
+
+      old_digest = Digest::MD5.hexdigest(old_chunk).to_s
       # STDERR.puts "old digest, length: #{old_digest.bytes.size}, Digest: #{old_digest}\n"
 
+      # STDERR.puts "Old digest: #{old_digest}\nNew digest: #{new_digest}"
       if new_digest == old_digest
         STDOUT.write("n")
 

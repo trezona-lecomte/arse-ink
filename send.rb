@@ -4,7 +4,7 @@ require 'zlib'
 require 'digest'
 
 class Send
-  DIGEST_SIZE = 32
+  DIGEST_SIZE = 16
   LENGTH_SIZE = 4
   CHUNK_SIZE = 1024
 
@@ -15,7 +15,7 @@ class Send
   def transfer
     chunks(@in_file).each do |chunk|
       # puts line.sum
-      STDOUT.write(Digest::MD5.hexdigest(chunk))
+      STDOUT.write([Digest::MD5.hexdigest(chunk)].pack('H32'))
       compressed_chunk = Zlib::Deflate.deflate(chunk)
 
       STDOUT.write(chunk.length.to_s.split.pack("A#{LENGTH_SIZE}"))
