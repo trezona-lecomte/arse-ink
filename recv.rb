@@ -21,7 +21,6 @@ class Recv
   end
 
   def receive
-
     until STDIN.eof?
       read_header
 
