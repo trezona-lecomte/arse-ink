@@ -10,7 +10,7 @@ class Recv
   CHUNK_SIZE = 512
 
   def initialize
-    # @recd_bytes = 0
+    @recd_bytes = 0
     begin
       @old_output = StringIO.new(ARGF.read)
       @new_output = File.open(ARGF.filename, "w+")
@@ -36,8 +36,8 @@ class Recv
         @new_output.write(read_new_chunk)
       end
     end
-    # STDERR.puts "Recd #{@recd_bytes} Bytes"
-    # STDERR.puts "Recd #{@recd_bytes / 1000000.00} MB"
+    STDERR.puts "Recd #{@recd_bytes} Bytes"
+    STDERR.puts "Recd #{@recd_bytes / 1000000.00} MB"
     @old_output.close
     @new_output.close
   end
@@ -48,7 +48,7 @@ class Recv
     @new_digest = STDIN.read(DIGEST_SIZE).unpack('H32').first
     @uncompressed_new_chunk_length = STDIN.read(LENGTH_SIZE).to_i
     @compressed_new_chunk_length = STDIN.read(LENGTH_SIZE).to_i
-    # @recd_bytes += DIGEST_SIZE + (LENGTH_SIZE * 2)
+    @recd_bytes += DIGEST_SIZE + (LENGTH_SIZE * 2)
   end
 
   def read_old_chunk
@@ -61,7 +61,7 @@ class Recv
 
   def read_new_chunk
     compressed_new_chunk = STDIN.read(@compressed_new_chunk_length)
-    # @recd_bytes += @compressed_new_chunk_length
+    @recd_bytes += @compressed_new_chunk_length
     Zlib::Inflate.inflate(compressed_new_chunk)
   end
 end

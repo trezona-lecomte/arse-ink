@@ -28,12 +28,11 @@ class Send
   end
 
   def chunks(str)
-    chunks = []
-    until str.eof?
-      chunk = str.read(CHUNK_SIZE)
-      chunks << chunk
+    Enumerator.new do |enum|
+      while chunk = str.read(CHUNK_SIZE)
+        enum << chunk
+      end
     end
-    chunks
   end
 end
 
